@@ -13,6 +13,13 @@ public class Bateau {
 	public Bateau() {
 		// TODO Auto-generated constructor stub
 	}
+	
+	
+	public boolean equal(Bateau b) {
+		return this.temps_minute == b.getTemps_minute() && this.name == b.name;
+	}
+	
+	
 	public int getTemps_minute() {
 		return temps_minute;
 	}

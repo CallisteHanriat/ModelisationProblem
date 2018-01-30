@@ -3,6 +3,7 @@ import static org.junit.Assert.*;
 import java.lang.reflect.Array;
 import java.security.Signature;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import org.junit.Test;
 
@@ -21,18 +22,29 @@ public class testExemple {
 		
 		etatInitial.affichage();
 		
-		etatInitial.setFils(Outil.noeudsEtapeSuivante(etatInitial));
+		etatInitial.setFils(Outil.noeudsEtapeSuivante(etatInitial , new LinkedHashMap<Noeud,Noeud>(), new LinkedHashMap<Noeud, Integer>()));
 		for (Noeud fils : etatInitial.getFils()){
 			fils.affichage();
 		}
 		
-		ArrayList<Noeud> bateauxApresFils1 = Outil.noeudsEtapeSuivante(etatInitial.getFils().get(0));
+		ArrayList<Noeud> bateauxApresFils1 = Outil.noeudsEtapeSuivante(etatInitial.getFils().get(0), new LinkedHashMap<Noeud,Noeud>(), new LinkedHashMap<Noeud, Integer>());
 		
 		System.out.println("ANALYSE DU FILS \n\n\n nouvel etat\n");
 		etatInitial.getFils().get(0).affichage();
 		System.out.println("\nFils\n-----------------\n");
 		for (Noeud filsFils : bateauxApresFils1) {
 			filsFils.affichage();
+		}
+		
+		System.out.println("Verification de l'état initial : ");
+		etatInitial.affichage();
+		
+		System.out.println("ANALYSE DU FILS \n\n\n nouvel etat\n");
+		bateauxApresFils1.get(0).affichage();
+		System.out.println("\nFils\n-----------------\n");
+		ArrayList<Noeud> bateauxApresFils2 = Outil.noeudsEtapeSuivante(bateauxApresFils1.get(0) , new LinkedHashMap<Noeud,Noeud>(), new LinkedHashMap<Noeud, Integer>());
+		for (Noeud f : bateauxApresFils2) {
+			f.affichage();
 		}
 		
 	}

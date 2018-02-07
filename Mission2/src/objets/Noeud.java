@@ -7,10 +7,6 @@ public class Noeud {
 	
 	private boolean trajetProchainAller;
 	
-	private int cout;
-	
-	private ArrayList<Noeud> fils;
-	
 	public Noeud(){
 		
 	}
@@ -19,14 +15,11 @@ public class Noeud {
 		return bateauxCoteA;
 	}
 
-	public Noeud(ArrayList<Bateau> bateauxCoteA, ArrayList<Bateau> bateauxCoteB, boolean trajetAller, int cout,
-			ArrayList<Noeud> fils) {
+	public Noeud(Noeud n) {
 		super();
-		this.bateauxCoteA = bateauxCoteA;
-		this.bateauxCoteB = bateauxCoteB;
-		this.trajetProchainAller = trajetAller;
-		this.cout = cout;
-		this.fils = fils;
+		this.bateauxCoteA = new ArrayList<>(n.getBateauxCoteA());
+		this.bateauxCoteB = new ArrayList<>(n.getBateauxCoteB());
+		this.trajetProchainAller = n.isTrajetAller();
 	}
 
 	public boolean isTrajetAller() {
@@ -48,26 +41,9 @@ public class Noeud {
 	public void setBateauxCoteB(ArrayList<Bateau> bateauxCoteB) {
 		this.bateauxCoteB = bateauxCoteB;
 	}
-
-	public int getCout() {
-		return cout;
-	}
-
-	public void setCout(int cout) {
-		this.cout = cout;
-	}
-
-	public ArrayList<Noeud> getFils() {
-		return fils;
-	}
-
-	public void setFils(ArrayList<Noeud> fils) {
-		this.fils = fils;
-	}
 	
 	
 	public void affichage() {
-		System.out.println("cout le plus court pour arriver ici : " + this.getCout());
 		System.out.println("CoteA");
 		for (Bateau b : this.getBateauxCoteA()) {
 			System.out.println("bateau " + b.getName() + " minutes trajet " + b.getTemps_minute());

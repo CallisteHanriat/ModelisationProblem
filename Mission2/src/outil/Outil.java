@@ -1,17 +1,51 @@
 package outil;
 
 import java.awt.RenderingHints.Key;
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import objets.Bateau;
 import objets.Noeud;
 import objets.Trajet;
 
 public class Outil {
+	
+	
+	public static int getTemps(Noeud n1, Noeud n2) {
+		int val= 0;
+		ArrayList<Bateau> bateauxQuiOntBouge  = new ArrayList<>();
+		if (!n1.isTrajetAller()) {
+			for (Bateau b : n1.getBateauxCoteB()) {
+				for (Bateau b2 : n2.getBateauxCoteA()) {
+					if (b2.equal(b)) {
+						bateauxQuiOntBouge.add(b);
+						val = b.getTemps_minute();
+					}
+				}
+			}
+		} else {
+			for (Bateau b : n1.getBateauxCoteA()) {
+				for (Bateau b2 : n2.getBateauxCoteB()) {
+					if (b2.equal(b)) {
+						bateauxQuiOntBouge.add(b);
+					}
+				}
+			}
+			Bateau b1 = bateauxQuiOntBouge.get(0);
+			Bateau b2 = bateauxQuiOntBouge.get(1);
+			val = Outil.calculCout(b1, b2);
+		}
+		
+		return val;
+		
+	}
 	
 	public static int calculCout (Bateau b1, Bateau b2) {
 		if (b1.getTemps_minute() > b2.getTemps_minute()) {
@@ -21,70 +55,93 @@ public class Outil {
 		}
 	}
 	
-	public static Noeud trouverMinimum(ArrayList<Noeud> noeuds) {
-		int min = 1000000;
-		Noeud sommet = new Noeud();
-		for (Noeud n : noeuds) {
-			if (n.getCout()<min) {
-				min = n.getCout();
-				sommet = n;
-			}
+	public static int getMinCout(Noeud n, Map<Noeud, Integer> mapCout) {
+		Integer cout = mapCout.get(n);
+		if (cout == null) {
+			return Integer.MAX_VALUE;
+		} else {
+			return cout;
 		}
-		
-		return sommet;
 	}
 	
-	public static void maj_distance(Map<Noeud, Integer> mapValeur, Map<Noeud, Noeud> predecesseurs,  Noeud s1, Noeud s2) {		
-		if (mapValeur.get(s1).intValue() > mapValeur.get(s2).intValue() + s1.getCout()+s2.getCout()) {
-			mapValeur.put(s2, s1.getCout()+s2.getCout());
-			predecesseurs.put(s2, s1);
+	public static Noeud getMinimum(Set<Noeud> noeuds, Map<Noeud, Integer> mapVal) {
+		Noeud min = null;
+		for (Noeud n : noeuds) {
+			if (min == null) {
+				min = n;
+			} else {
+				if (Outil.getMinCout(n, mapVal) < Outil.getMinCout(min, mapVal)) {
+					min = n;
+				}
+			}
+		}
+		return min;
+	}
+	
+	public static LinkedList<Noeud> getChemin(Noeud target, Map<Noeud, Noeud> mapParent) {
+		LinkedList<Noeud> chemin = new LinkedList<>();
+		
+		Noeud etape = target;
+		
+		if (mapParent.get(etape) != null) {
+			etape = mapParent.get(etape);
+			chemin.add(etape);
+		}
+		
+		while(mapParent.get(etape)!=null) {
+			etape = mapParent.get(etape);
+			chemin.add(etape);
+		}
+		Collections.reverse(chemin);
+		return chemin;
+	}
+	
+	
+	public static void findMinimalTime(Map<Noeud, Integer> mapValeur, Map<Noeud, Noeud> predecesseurs,  Noeud s1, Set<Noeud> noeudsNonTraites) {		
+		ArrayList<Noeud> noeudsVoisins = Outil.noeudsEtapeSuivante(s1, predecesseurs, mapValeur);	
+		for (Noeud n : noeudsVoisins) {
+			int tempsEntreLesDeuxNoeuds = Outil.getTemps(s1,n);
+			int getMinCoutN = Outil.getMinCout(n, mapValeur);
+			int getMinCoutS1 = Outil.getMinCout(s1, mapValeur) + tempsEntreLesDeuxNoeuds;
+			
+			if (getMinCoutN > getMinCoutS1){
+				mapValeur.put(n, getMinCoutS1);
+				predecesseurs.put(n, s1);
+				noeudsNonTraites.add(n);
+			}
 		}
 	}
 	
 	public static ArrayList<Noeud> noeudsEtapeSuivante(Noeud n, Map<Noeud, Noeud> mapParent, Map<Noeud, Integer> mapCout) {
 		int nombre_bateaux = n.getBateauxCoteA().size()+n.getBateauxCoteB().size();
-		ArrayList<Noeud> returnValue = new ArrayList<>();
-		ArrayList<Bateau> bateauxCoteA = (ArrayList<Bateau>) n.getBateauxCoteA().clone();
-		ArrayList<Bateau> bateauxCoteB = (ArrayList<Bateau>) n.getBateauxCoteB().clone();
+		ArrayList<Noeud> returnValue = new ArrayList<>();		
 		Bateau b1 = new Bateau();
 		Bateau b2 = new Bateau();
 		if(n.isTrajetAller()) {			
 			for (int i=0; i<n.getBateauxCoteA().size()-1;i++) {
-				for(int j=i+1; j<n.getBateauxCoteA().size(); j++) {
-					b1 = n.getBateauxCoteA().get(i);
-					b2 = n.getBateauxCoteA().get(j);
-					bateauxCoteB.add(bateauxCoteA.get(i));					
-					bateauxCoteB.add(bateauxCoteA.get(j));
-					bateauxCoteA.remove(j);
-					bateauxCoteA.remove(i);
-					Noeud nouveauNoeud = new Noeud();
-					nouveauNoeud.setBateauxCoteA(bateauxCoteA);
-					nouveauNoeud.setBateauxCoteB(bateauxCoteB);
-					nouveauNoeud.setCout(Outil.calculCout(b1, b2));
+				for(int j=i+1; j<n.getBateauxCoteA().size(); j++) {					
+					Noeud nouveauNoeud = new Noeud(n);
+					nouveauNoeud.getBateauxCoteB().add(nouveauNoeud.getBateauxCoteA().get(i));
+					nouveauNoeud.getBateauxCoteB().add(nouveauNoeud.getBateauxCoteA().get(j));
+					
+					nouveauNoeud.getBateauxCoteA().remove(j);					
+					nouveauNoeud.getBateauxCoteA().remove(i);
+										
 					nouveauNoeud.setTrajetAller(false);
-					mapParent.put(nouveauNoeud, n);
-					mapCout.put(nouveauNoeud, nouveauNoeud.getCout());
+					
 					returnValue.add(nouveauNoeud);
-					bateauxCoteA = (ArrayList<Bateau>) n.getBateauxCoteA().clone();
-					bateauxCoteB = (ArrayList<Bateau>) n.getBateauxCoteB().clone();
 				}
 			}
 		} else {
 			for (int i = 0; i<n.getBateauxCoteB().size(); i++) {
 				Bateau b = n.getBateauxCoteB().get(i);
-				Noeud nouveauNoeud = new Noeud();
-				bateauxCoteA.add(bateauxCoteB.get(i));
-				bateauxCoteB.remove(i);
-				nouveauNoeud.setBateauxCoteA(bateauxCoteA);
-				nouveauNoeud.setBateauxCoteB(bateauxCoteB);
-				mapParent.put(nouveauNoeud, n);
-				nouveauNoeud.setCout(b.getTemps_minute());
-				nouveauNoeud.setTrajetAller(true);
-				mapCout.put(nouveauNoeud, nouveauNoeud.getCout());
-				returnValue.add(nouveauNoeud);
+				Noeud nouveauNoeud = new Noeud(n);
 				
-				bateauxCoteA = (ArrayList<Bateau>) n.getBateauxCoteA().clone();
-				bateauxCoteB = (ArrayList<Bateau>) n.getBateauxCoteB().clone();
+				nouveauNoeud.getBateauxCoteA().add(nouveauNoeud.getBateauxCoteB().get(i));
+				nouveauNoeud.getBateauxCoteB().remove(i);
+												
+				nouveauNoeud.setTrajetAller(true);
+				returnValue.add(nouveauNoeud);								
 			}
 		}
 		
@@ -121,11 +178,9 @@ public class Outil {
 	}
 	
 	public static boolean deuxEtatsEgaux(Noeud s1, Noeud s2) {
-		if (s1.getCout() != s2.getCout()) return false;
 		if (deuxArraysEgaux(s1.getBateauxCoteA(), s2.getBateauxCoteA()) && deuxArraysEgaux(s1.getBateauxCoteB(), s2.getBateauxCoteB())) {
 			return true;
 		}
-//		if (s1.getBateauxCoteA().containsAll(s2.getBateauxCoteA()) && s1.getBateauxCoteB().containsAll(s2.getBateauxCoteB())) return true;
 		
 		return false;
 	}
@@ -156,8 +211,6 @@ public class Outil {
 
 		etatInitial.setBateauxCoteA(bateauxCoteA);
 		etatInitial.setBateauxCoteB(bateauxCoteB);
-
-		etatInitial.setCout(0);
 
 		Noeud etatFinal = new Noeud();
 

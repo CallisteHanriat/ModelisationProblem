@@ -3,9 +3,12 @@ package main;
 import java.security.KeyStore.Entry;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import objets.Noeud;
 import outil.Outil;
@@ -14,39 +17,26 @@ public class Mission2 {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Noeud etatInitial = Outil.sitationDepart()[0];
+		Noeud noeudCourant = Outil.sitationDepart()[0];
 		LinkedHashMap<Noeud, Integer> mapCout = new LinkedHashMap<>();
-		LinkedHashMap<Noeud, Noeud> mapParent = new LinkedHashMap<>();
-		Outil.initialisation(mapCout, mapParent);
-		Noeud s1 = mapParent.entrySet().iterator().next().getKey();
-		s1.setFils(Outil.noeudsEtapeSuivante(s1, mapParent, mapCout));
-		while(!mapParent.isEmpty() && !s1.getFils().isEmpty()) {
-			mapParent.remove(s1);			
-			for (Noeud s : s1.getFils()) {
-				Outil.maj_distance(mapCout, mapParent, s1, s);
-				System.out.println("taille du mapping parent : " + mapParent.size());
-			}
-			s1 = mapParent.entrySet().iterator().next().getKey();
-			s1.setFils(Outil.noeudsEtapeSuivante(s1, mapParent, mapCout));
-		}
+		LinkedHashMap<Noeud, Noeud> predecessor = new LinkedHashMap<>();
+		Set<Noeud> noeudsNonTraites = new HashSet<Noeud>();
+		Set<Noeud> noeudsTraite = new HashSet<Noeud>();		
+		mapCout.put(noeudCourant, 0);
+		noeudsNonTraites.add(noeudCourant);
 		
-		ArrayList<Noeud> sol = new ArrayList<>();
-		Noeud etatFinal = new Noeud();
-		Iterator iterator = mapParent.entrySet().iterator();
-		while (iterator.hasNext()) { 
-			Map.Entry pair = (Map.Entry) iterator.next();
-			etatFinal = (Noeud) pair.getValue();
+		while(noeudsNonTraites.size() > 0) {
+			noeudCourant = Outil.getMinimum(noeudsNonTraites, mapCout);
+			noeudsTraite.add(noeudCourant);
+			noeudsNonTraites.remove(noeudCourant);						
+			Outil.findMinimalTime(mapCout, predecessor, noeudCourant, noeudsNonTraites);			
 		}
-		etatFinal.affichage();
-		System.out.println("Retour a l'etat initial : \n");
-		
-		int a = 0;
-		while (etatFinal != etatInitial) {
-			sol.add(etatFinal);
-			etatFinal = mapParent.get(etatFinal);
-			System.out.println(a);
-			a++;
+		System.out.println("size of mapCout : " + mapCout.size());
+		System.out.println("size of mapParent : " + predecessor.size()); 
+		LinkedList<Noeud> chemin = new LinkedList<>();
+		chemin = Outil.getChemin(noeudCourant, predecessor);
+		for (Noeud n : chemin) {
+			n.affichage();
 		}
-		etatFinal.affichage();
 	}
 }

@@ -13,7 +13,6 @@ import java.util.Set;
 
 import objets.Bateau;
 import objets.Noeud;
-import objets.Trajet;
 
 public class Outil {
 	
@@ -70,7 +69,9 @@ public class Outil {
 			if (min == null) {
 				min = n;
 			} else {
-				if (Outil.getMinCout(n, mapVal) < Outil.getMinCout(min, mapVal)) {
+				int minCoutN = Outil.getMinCout(n, mapVal);
+				int minCoutMin = Outil.getMinCout(min, mapVal);
+				if (minCoutN < minCoutMin) {
 					min = n;
 				}
 			}
@@ -82,7 +83,7 @@ public class Outil {
 		LinkedList<Noeud> chemin = new LinkedList<>();
 		
 		Noeud etape = target;
-		
+		chemin.add(etape);
 		if (mapParent.get(etape) != null) {
 			etape = mapParent.get(etape);
 			chemin.add(etape);
@@ -113,33 +114,24 @@ public class Outil {
 	}
 	
 	public static ArrayList<Noeud> noeudsEtapeSuivante(Noeud n, Map<Noeud, Noeud> mapParent, Map<Noeud, Integer> mapCout) {
-		int nombre_bateaux = n.getBateauxCoteA().size()+n.getBateauxCoteB().size();
 		ArrayList<Noeud> returnValue = new ArrayList<>();		
-		Bateau b1 = new Bateau();
-		Bateau b2 = new Bateau();
 		if(n.isTrajetAller()) {			
 			for (int i=0; i<n.getBateauxCoteA().size()-1;i++) {
 				for(int j=i+1; j<n.getBateauxCoteA().size(); j++) {					
 					Noeud nouveauNoeud = new Noeud(n);
 					nouveauNoeud.getBateauxCoteB().add(nouveauNoeud.getBateauxCoteA().get(i));
 					nouveauNoeud.getBateauxCoteB().add(nouveauNoeud.getBateauxCoteA().get(j));
-					
 					nouveauNoeud.getBateauxCoteA().remove(j);					
 					nouveauNoeud.getBateauxCoteA().remove(i);
-										
 					nouveauNoeud.setTrajetAller(false);
-					
 					returnValue.add(nouveauNoeud);
 				}
 			}
 		} else {
 			for (int i = 0; i<n.getBateauxCoteB().size(); i++) {
-				Bateau b = n.getBateauxCoteB().get(i);
 				Noeud nouveauNoeud = new Noeud(n);
-				
 				nouveauNoeud.getBateauxCoteA().add(nouveauNoeud.getBateauxCoteB().get(i));
-				nouveauNoeud.getBateauxCoteB().remove(i);
-												
+				nouveauNoeud.getBateauxCoteB().remove(i);							
 				nouveauNoeud.setTrajetAller(true);
 				returnValue.add(nouveauNoeud);								
 			}
@@ -166,10 +158,10 @@ public class Outil {
 				j++;
 			} else {
 				i++;
-				j = i;
+				j = 0;
 			}
 			
-			if (j==a.size() && !val) {
+			if (j==a.size() && i == a.size() && !val) {
 				idem = false;
 				
 			}
